@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<title>WSSI Sites</title>
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.12/theme/default/style.css" type="text/css">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.12/OpenLayers.js"></script>
+	<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.1.2"></script>
+	<link rel="stylesheet" type="text/css" href="http://extjs.cachefly.net/ext-3.4.0/resources/css/ext-all.css" />
+	<link rel="stylesheet" type="text/css" href="http://extjs.cachefly.net/ext-3.4.0/examples/shared/examples.css" />
+	<script type="text/javascript" src="http://extjs.cachefly.net/ext-3.4.0/adapter/ext/ext-base.js"></script>
+	<script type="text/javascript" src="http://extjs.cachefly.net/ext-3.4.0/ext-all.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/geoext/1.1/lib/GeoExt.js"></script>
+	<script src="http://code.jquery.com/jquery-latest.js"></script>
+
+	<style type="text/css">
+        .my-header .x-panel-header {
+            background: #D0E0E2;
+        }		
+    </style>
+	
+	<script type="text/javascript">
+
+		// Set global parameters
+		var fromProjection = new OpenLayers.Projection('EPSG:4326'); // WGS84
+		var toProjection = new OpenLayers.Projection('EPSG:900913'); // Spherical Mercator Projection
+		var map;
+
+		function init() {
+		
+			// Create map object and add map controls
+			map = new OpenLayers.Map('map', {projection:toProjection,
+					controls: [
+						new OpenLayers.Control.PanZoomBar(),
+						new OpenLayers.Control.Navigation(),
+						new OpenLayers.Control.LayerSwitcher({'ascending':false})
+					]}			
+			);
+
+			// Add the basemaps
+			stamenLayer = new OpenLayers.Layer.Stamen('toner-lite');
+			osmLayer = new OpenLayers.Layer.OSM();
+
+			// Symbol for unselected features
+			var birdStyle = new OpenLayers.Style({
+				strokeWidth:1,
+				strokeColor:'${color}',
+				fillColor:'${color}',
+				fillOpacity:0.25
+			});
+		
+			// Red symbol for selected features
+			var selectedBirdStyle = new OpenLayers.Style({
+				strokeWidth:2,
+				fillColor:'red',
+				fillOpacity:0.25,
+				strokeColor:'red'
+			});
+			
+			// Set up style map for bird polygons
+			var birdStyleMap = new OpenLayers.StyleMap({'default': birdStyle,'select': selectedBirdStyle});
+			
+			// Define the bird polygon GeoJSON layer
+			var birdLayer = new OpenLayers.Layer.Vector('WSSI Sites', {
+				projection: fromProjection,
+				strategies: [new OpenLayers.Strategy.Fixed()],
+				protocol: new OpenLayers.Protocol.HTTP({
+					url: 'wssiSites.geojson',
+					format: new OpenLayers.Format.GeoJSON()
+				}),
+				styleMap: birdStyleMap
+			});
+			
+			// Add the layers and center the map
+			map.addLayers([stamenLayer,osmLayer,birdLayer]);
+			map.setCenter(new OpenLayers.LonLat(-114.5, 48.7).transform(fromProjection,toProjection), 4);
+						
+			// create Ext grid and link with vector data
+			Ext.onReady (function(){
+
+				// create feature store, binding it to the vector layer
+				var store = new GeoExt.data.FeatureStore({
+					layer: birdLayer,
+					fields: [
+						{name: 'PROJECT_NA', type: 'string'},
+						{name: 'ACRES', type: 'string'},
+						{name: 'WSSI_ID_2', type: 'string'},
+						{name: 'wiki_url', type: 'string'},
+						{name: 'image_src', type: 'string'},
+						{name: 'color', type: 'string'}
+					]
+				});
+
+				// create a map panel
+				var mapPanel = new GeoExt.MapPanel({
+					title: 'Map of Critical Habitats',
+					region: 'west',
+					width: 600,
+					cls: 'my-header',
+					map: map
+				});
+
+				// create the toolbar for the grid panel
+				var toolbar = new Ext.Toolbar();
+				toolbar.add(new Ext.Toolbar.Button({text:'Zoom to Selected'}));
+				toolbar.add(new Ext.Toolbar.Button({text:'Zoom All'}));
+
+				// create grid panel configured with feature store
+				var gridPanel = new Ext.grid.GridPanel({
+					title: 'Threatened/Endangered Bird Species',
+					region: 'north',
+					store: store,
+					height: 300,
+					viewConfig: {forceFit: true},
+					cls: 'my-header',
+					columns: [
+						{
+							menuDisabled: true,
+							sortable: false,
+							width: 1,
+							xtype: 'gx_symbolizercolumn',
+							dataIndex: 'symbolizer',
+							hidden: true
+						}, {
+						header: '',
+							width: 10,
+							dataIndex: 'color',
+							renderer: function (value) {
+								return '<span style="background-color:' + value + ';opacity:0.4;">&nbsp&nbsp&nbsp&nbsp</span>';
+							}
+						}, {
+						header: 'Project Name',
+							width: 150,
+							dataIndex: 'PROJECT_NA'
+						}, {
+							header: 'Acreage',
+							width: 175,
+							dataIndex: 'ACRES'
+						}, {
+							header: 'WSSI ID',
+							width: 75,
+							dataIndex: 'WSSI_ID_2'
+						}, {
+							header: 'Wiki URL',
+							width: 75,
+							dataIndex: 'wiki_url',
+							hidden: true
+						}, {
+							header: 'Image Source',
+							width: 75,
+							dataIndex: 'image_src',
+							hidden: true
+						}
+					],
+					sm: new GeoExt.grid.FeatureSelectionModel(),
+					listeners: {
+						'rowclick' : function(grid, rowIndex, e){
+							getWikiText(store.getAt(rowIndex).get('wiki_url'), store.getAt(rowIndex).get('image_src'));
+						},
+						dblclick: function(dataview, index, item, e) {
+							gridPanel.getSelectionModel().each(function(rec){
+								var feature = rec.get('feature');
+								mapPanel.map.zoomToExtent(feature.geometry.getBounds());
+							})
+						}
+					},
+					tbar: [
+						{
+							text: 'Zoom to Selected',
+							handler: function() {
+								gridPanel.getSelectionModel().each(function(rec){
+									var feature = rec.get('feature');
+									mapPanel.map.zoomToExtent(feature.geometry.getBounds());
+								})
+							}
+						},
+						{
+						text: 'Zoom All',
+							handler: function() {
+								mapPanel.map.zoomToExtent(birdLayer.getDataExtent());
+							}
+						},						
+					]
+				});
+
+				// create info panel for selected feature
+				var infoPanel = new Ext.Panel({
+					title: 'Bird Info',
+					region: 'center',
+					html: 'Click an area on the map or a row in the table to get more information.',
+					height: 300,
+					cls: 'my-header',
+					autoScroll: true
+				});
+
+				// combine grid and info panels
+				var infogridPanel = new Ext.Panel({
+					layout: 'border',
+					region: 'center',
+					items: [gridPanel, infoPanel]
+				});
+
+				// add the map and infogrid panels to the main panel and display in the "panel" div
+				var mainPanel = new Ext.Panel({
+					renderTo: 'panel',
+					layout: 'border',
+					region: 'center',
+					height: 600,
+					width: 1100,
+					items: [mapPanel, infogridPanel]
+				});
+
+			}); //end Ext.onReady
+
+		
+			// Listen for feature selection and unselection events
+			selectControl = new OpenLayers.Control.SelectFeature([birdLayer], {
+				onSelect: onFeatureSelect,
+				onUnselect: onFeatureUnselect
+			});
+		
+			map.addControl(selectControl);
+			selectControl.activate();
+
+			 // Handle the feature selection event by passing attributes to the getWikiText function
+			 function onFeatureSelect(feature){
+			   var wikiText = getWikiText(feature.attributes.wiki_url, feature.attributes.image_src);
+			 }
+		
+			 // Handle the feature unselection event
+			 function onFeatureUnselect(feature){
+			   // Set the HTML back to what it was before
+			   document.getElementById('ext-gen42').innerHTML =  'Click an area on the map or a row in the table to get more information.';
+			 }
+
+			// Update info panel with text from Wikipedia and bird image from USFWS/USGS
+			function getWikiText(url, birdImage) {
+				var url = 'https://en.wikipedia.org/wiki/Prince_William_County,_Virginia';
+				var title = url.split("/");
+				title = title[title.length - 1];
+
+				//Get Leading paragraphs (section 0)
+				$.getJSON("http://en.wikipedia.org/w/api.php?action=parse&page=" + title + "&prop=text&section=0&format=json&callback=?", function (data) {
+					for (text in data.parse.text) {
+						var text = data.parse.text[text].split("<p>");
+						var pText = "";
+
+						//Remove html comment
+						text[1] = text[1].split("<!--");
+						if (text[1].length > 1) {
+							text[1][0] = text[1][0].split(/\r\n|\r|\n/);
+							text[1][0] = text[1][0][0];
+							text[1][0] += "</p> ";
+						}
+						text[1] = text[1][0];
+
+						//Construct a string from paragraphs
+						var htmlStrip = text[1].replace(/<(?:.|\n)*?>/gm, '') //Remove HTML
+						var splitNewline = htmlStrip.split(/\r\n|\r|\n/); //Split on newlines
+						for (newline in splitNewline) {
+							pText += splitNewline[newline];
+							pText += "\n";
+						}
+						pText = pText.substring(0, pText.length - 2); //Remove extra newline
+						pText = pText.substring(0, pText.search("function")); //Remove function information
+						pText = pText.replace(/\[\d+\]/g, ""); //Remove reference tags (e.x. [1], [4], etc)
+
+						// Set the font style and innerHTML for the DOM element
+						document.getElementById('ext-gen42').style.font = "normal normal 11.5px arial,serif";
+						document.getElementById('ext-gen42').innerHTML = '<img src="' + birdImage + 
+																		 '" height="100" width="100" align="left" style="border:5px solid white" />' + 
+																		 pText + '<br /><br />' +
+																		 '<a href="' + url + '" target="_blank">Text provided by Wikipedia</a><br />' + 
+																		 '<a href="' + birdImage + '" target="_blank">Image provided by USFWS or USGS</a>';
+					}
+				});
+			}
+		
+		} //end function init()
+		
+	</script>
+	
+  </head>
+  
+  <body onload="init()"; onload="getWiki">
+  
+	<h1 id="title" style="background-image: url(wetland2.jpg); margin: 0px; opacity:0.75; background-size: 100% 100%; 
+							background-repeat: no-repeat; height: 100px; width: 1100px; border: 1px solid black;">
+							Wetland Studies and Solutions, Inc. Site Browser</h1>
+
+	<div id="panel"></div>
+	
+  </body>
+  
+</html>
