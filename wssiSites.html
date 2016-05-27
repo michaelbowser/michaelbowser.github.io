@@ -23,7 +23,7 @@
 	<script type="text/javascript">
 
 		// Set global parameters
-		var fromProjection = new OpenLayers.Projection('EPSG:4326'); // WGS84
+		var fromProjection = new OpenLayers.Projection('EPSG:3857'); // WGS84
 		var toProjection = new OpenLayers.Projection('EPSG:900913'); // Spherical Mercator Projection
 		var map;
 
@@ -35,7 +35,8 @@
 						new OpenLayers.Control.PanZoomBar(),
 						new OpenLayers.Control.Navigation(),
 						new OpenLayers.Control.LayerSwitcher({'ascending':false})
-					]}			
+					]}
+				
 			);
 
 			// Add the basemaps
@@ -44,18 +45,16 @@
 
 			// Symbol for unselected features
 			var birdStyle = new OpenLayers.Style({
-				strokeWidth:1,
-				strokeColor:'${color}',
-				fillColor:'${color}',
+				'pointRadius': 4,
+				fillColor:'blue',
 				fillOpacity:0.25
 			});
 		
 			// Red symbol for selected features
 			var selectedBirdStyle = new OpenLayers.Style({
-				strokeWidth:2,
+				'pointRadius': 7,
 				fillColor:'red',
-				fillOpacity:0.25,
-				strokeColor:'red'
+				fillOpacity:0.25
 			});
 			
 			// Set up style map for bird polygons
@@ -74,7 +73,11 @@
 			
 			// Add the layers and center the map
 			map.addLayers([stamenLayer,osmLayer,birdLayer]);
-			map.setCenter(new OpenLayers.LonLat(-114.5, 48.7).transform(fromProjection,toProjection), 4);
+			var position = new OpenLayers.LonLat(-8628592,4683516);
+			position.transform(fromProjection,toProjection);
+			var zoom = 11;
+			map.setCenter(position,zoom);
+
 						
 			// create Ext grid and link with vector data
 			Ext.onReady (function(){
@@ -94,7 +97,7 @@
 
 				// create a map panel
 				var mapPanel = new GeoExt.MapPanel({
-					title: 'Map of Critical Habitats',
+					title: 'Wetland Studies Project Sites',
 					region: 'west',
 					width: 600,
 					cls: 'my-header',
@@ -108,7 +111,7 @@
 
 				// create grid panel configured with feature store
 				var gridPanel = new Ext.grid.GridPanel({
-					title: 'Threatened/Endangered Bird Species',
+					title: 'Project Information',
 					region: 'north',
 					store: store,
 					height: 300,
@@ -186,7 +189,7 @@
 
 				// create info panel for selected feature
 				var infoPanel = new Ext.Panel({
-					title: 'Bird Info',
+					title: 'Web Map Information',
 					region: 'center',
 					html: 'Click an area on the map or a row in the table to get more information.',
 					height: 300,
@@ -234,48 +237,6 @@
 			   document.getElementById('ext-gen42').innerHTML =  'Click an area on the map or a row in the table to get more information.';
 			 }
 
-			// Update info panel with text from Wikipedia and bird image from USFWS/USGS
-			function getWikiText(url, birdImage) {
-				var url = 'https://en.wikipedia.org/wiki/Prince_William_County,_Virginia';
-				var title = url.split("/");
-				title = title[title.length - 1];
-
-				//Get Leading paragraphs (section 0)
-				$.getJSON("http://en.wikipedia.org/w/api.php?action=parse&page=" + title + "&prop=text&section=0&format=json&callback=?", function (data) {
-					for (text in data.parse.text) {
-						var text = data.parse.text[text].split("<p>");
-						var pText = "";
-
-						//Remove html comment
-						text[1] = text[1].split("<!--");
-						if (text[1].length > 1) {
-							text[1][0] = text[1][0].split(/\r\n|\r|\n/);
-							text[1][0] = text[1][0][0];
-							text[1][0] += "</p> ";
-						}
-						text[1] = text[1][0];
-
-						//Construct a string from paragraphs
-						var htmlStrip = text[1].replace(/<(?:.|\n)*?>/gm, '') //Remove HTML
-						var splitNewline = htmlStrip.split(/\r\n|\r|\n/); //Split on newlines
-						for (newline in splitNewline) {
-							pText += splitNewline[newline];
-							pText += "\n";
-						}
-						pText = pText.substring(0, pText.length - 2); //Remove extra newline
-						pText = pText.substring(0, pText.search("function")); //Remove function information
-						pText = pText.replace(/\[\d+\]/g, ""); //Remove reference tags (e.x. [1], [4], etc)
-
-						// Set the font style and innerHTML for the DOM element
-						document.getElementById('ext-gen42').style.font = "normal normal 11.5px arial,serif";
-						document.getElementById('ext-gen42').innerHTML = '<img src="' + birdImage + 
-																		 '" height="100" width="100" align="left" style="border:5px solid white" />' + 
-																		 pText + '<br /><br />' +
-																		 '<a href="' + url + '" target="_blank">Text provided by Wikipedia</a><br />' + 
-																		 '<a href="' + birdImage + '" target="_blank">Image provided by USFWS or USGS</a>';
-					}
-				});
-			}
 		
 		} //end function init()
 		
@@ -285,9 +246,9 @@
   
   <body onload="init()"; onload="getWiki">
   
-	<h1 id="title" style="background-image: url(wetland2.jpg); margin: 0px; opacity:0.75; background-size: 100% 100%; 
-							background-repeat: no-repeat; height: 100px; width: 1100px; border: 1px solid black;">
-							Wetland Studies and Solutions, Inc. Site Browser</h1>
+	<h1 id="title" style="background-image: url(Grass.gif); margin: 0px; opacity:0.75; background-size: 100% 100%; 
+							background-repeat: no-repeat; height: 100px; width: 1100px; border: 0px solid black;">
+							WSSI Site Browser</h1>
 
 	<div id="panel"></div>
 	
