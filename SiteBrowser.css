@@ -104,7 +104,7 @@ a:hover, .NavigationTable a:hover	{
 
 .ButtonNew
 {
-    background-image: url(../images/Button.gif);
+    background-image: url(Button.gif);
     padding-left: 25px;
     background-position: center;
     background-repeat: no-repeat;
@@ -119,7 +119,7 @@ a:hover, .NavigationTable a:hover	{
     padding-top: 15px;
 }
 
-.Button { background-image: url(../images/Button.gif);
+.Button { background-image: url(Button.gif);
             padding-left: 25px;
 			background-position: center;
             background-repeat: no-repeat;
