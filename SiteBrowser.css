@@ -1,0 +1,170 @@
+body {
+	background-color: #FFFFF0;
+}
+
+table.SWAMP_Table {	
+	margin: 3px;
+	border: 2px solid #663300;
+	width: 98%;
+	border-collapse:collapse;
+}
+
+span.New {
+	background-color: yellow;
+	font-weight: bold;
+}
+
+.SWAMP_FieldName {
+	color: #663300;
+	border: 1px solid #663300;
+	width: 100px;
+	padding: 2px;
+	background-color: #CC9900;
+}
+
+td.SWAMP_Data {
+	color: #000;
+	border: 1px solid #CC9900;
+	width: auto;
+	padding: 2px;
+}
+
+span.bold {
+	font-weight: bold;
+}
+
+.QueryButton {
+	width: 100px;
+}
+
+.QueryTextbox
+{
+	width: 300px;
+}
+
+.bd {
+	overflow:auto;
+	padding: 5px;
+}
+
+div#QueryResults
+{
+	width: 99%;
+	height: 500px;
+	overflow: auto;
+	border: solid 2px #000;
+}
+
+div#divPacifier
+{
+	background-color: #FFFFCC;
+	border: solid #000;
+	border-bottom-width: 3px;
+	border-right-width: 3px;
+	border-top-width: 1px;
+	border-left-width: 1px;
+	text-align: center;
+}
+
+div#divProjectInfo {
+	overflow: auto;
+	width: 560px;
+}
+
+.Hidden {
+	display: none;
+}
+
+.NotHidden {
+	display: block;
+}
+
+a:link
+{
+	color: #513333;
+	font-weight: bold;
+}	
+		
+a:visited
+{
+	color: #513333;
+	font-weight: bold;
+}	
+		
+a:active
+{
+	color: #333399;
+	text-decoration: underline;
+}	
+		
+a:hover, .NavigationTable a:hover	{	
+	text-decoration:	underline;
+	color:	#3333cc;
+	}	
+
+.ButtonNew
+{
+    background-image: url(../images/Button.gif);
+    padding-left: 25px;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: rgb(102, 51, 0);
+    text-align: center;
+    font-size: 16px;
+    font-family: Josefin Sans;
+    font-weight: bold;
+    vertical-align: middle;
+    width: 200px;
+    height: 50px;
+    padding-top: 15px;
+}
+
+.Button { background-image: url(../images/Button.gif);
+            padding-left: 25px;
+			background-position: center;
+            background-repeat: no-repeat;
+            color: rgb(102, 51, 0);
+            text-align: center;
+            font-size: 16px;
+            font-family: Josefin Sans;
+            font-weight: bold;
+            vertical-align: middle;
+            width: 33%;
+        }
+
+.HeadingHuge {
+	font-size: 300%;
+	color: rgb(81, 51, 51);
+	font-family: Josefin Sans;
+	text-align: center;
+}  
+
+.HeadingMedium {
+	font-size: 200%;
+	color: rgb(81, 51, 51);
+	font-family: Josefin Sans;
+	text-align: center;
+}  
+
+.NavigationTable  {
+	width: 100%;
+	height: 250px;	
+}  
+
+.NavigationTable tr {
+	height: 50px;
+} 
+
+.NavigationTable a {
+	text-decoration: none;
+	color: rgb(81, 51, 51);
+}
+
+h1, h2 {
+	color: rgb(81, 51, 51);
+}  
+
+span.underline {
+	text-decoration: underline;
+	font-weight: bold;
+}   
